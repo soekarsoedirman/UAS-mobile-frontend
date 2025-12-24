@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../services/api.dart';
 
 class ProductDetailPage extends StatefulWidget {
-  // Kita hanya butuh ID produk dan data awal (opsional) dari halaman list
   final String productId;
   final String productName;
   final double productPrice;
@@ -24,7 +23,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool isLoading = true;
   bool isAddingToCart = false;
 
-  // Variabel untuk menyimpan detail lengkap
   String categoryName = "-";
   String subCategoryName = "-";
 
@@ -34,24 +32,23 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     fetchDetail();
   }
 
-  // Ambil data detail (Kategori & Sub Kategori) dari API
   void fetchDetail() async {
     final data = await ApiService().getProductDetail(widget.productId);
-    if (mounted && data != null) {
+    if (mounted) {
       setState(() {
-        categoryName = data['kategori_name'] ?? "-";
-        subCategoryName = data['subkategori_name'] ?? "-";
+        if (data != null) {
+          categoryName = data['kategori_name']?.toString() ?? "-";
+          subCategoryName = data['subkategori_name']?.toString() ?? "-";
+        }
         isLoading = false;
       });
-    } else {
-      if (mounted) setState(() => isLoading = false);
     }
   }
 
-  // Fungsi Tambah ke Keranjang
   void handleAddToCart() async {
     setState(() => isAddingToCart = true);
 
+    // Panggil API Service
     bool success = await ApiService().addToCart(widget.productId, quantity);
 
     setState(() => isAddingToCart = false);
@@ -67,6 +64,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           backgroundColor: Colors.green,
         ),
       );
+      Navigator.pop(context); // Opsional: Kembali ke list setelah add
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -79,7 +77,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Formatter Rupiah
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -106,7 +103,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ICON PRODUK
                 Center(
                   child: Container(
                     padding: const EdgeInsets.all(20),
@@ -121,10 +117,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // NAMA PRODUK
                 Center(
                   child: Text(
                     widget.productName,
@@ -135,10 +128,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
-                // KATEGORI (Loading jika belum selesai fetch)
                 Center(
                   child: isLoading
                       ? const SizedBox(
@@ -147,30 +137,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Text(
-                          subCategoryName, // Menampilkan Sub Kategori
+                          subCategoryName,
                           style: const TextStyle(color: Colors.grey),
                         ),
                 ),
-
                 const SizedBox(height: 20),
                 const Divider(),
-
-                // INFO PRODUK
                 _infoRow(
                   "Harga Satuan",
                   currencyFormatter.format(widget.productPrice),
                   Colors.green,
                 ),
                 const SizedBox(height: 8),
-
-                // Menampilkan Kategori Lengkap
                 _infoRow("Kategori", isLoading ? "..." : categoryName),
                 const SizedBox(height: 8),
                 _infoRow("Sub Kategori", isLoading ? "..." : subCategoryName),
-
                 const SizedBox(height: 20),
-
-                // QUANTITY CONTROLLER
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -183,11 +165,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         IconButton(
                           icon: const Icon(Icons.remove_circle_outline),
                           onPressed: quantity > 1
-                              ? () {
-                                  setState(() {
-                                    quantity--;
-                                  });
-                                }
+                              ? () => setState(() => quantity--)
                               : null,
                         ),
                         Text(
@@ -199,19 +177,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.add_circle_outline),
-                          onPressed: () {
-                            setState(() {
-                              quantity++;
-                            });
-                          },
+                          onPressed: () => setState(() => quantity++),
                         ),
                       ],
                     ),
                   ],
                 ),
-
-                const Spacer(), // Dorong tombol ke bawah
-                // TOMBOL TAMBAH KE KERANJANG
+                const Spacer(),
                 SizedBox(
                   width: double.infinity,
                   height: 48,

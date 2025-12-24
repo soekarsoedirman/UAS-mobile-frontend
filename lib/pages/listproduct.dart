@@ -16,6 +16,7 @@ class _ProductListPageState extends State<ProductListPage> {
   @override
   void initState() {
     super.initState();
+    // Memanggil endpoint search tanpa parameter = get all (limit 10 di backend)
     _productsFuture = ApiService().getProducts();
   }
 
@@ -40,6 +41,9 @@ class _ProductListPageState extends State<ProductListPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text("Belum ada produk"));
           }
@@ -50,7 +54,10 @@ class _ProductListPageState extends State<ProductListPage> {
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
-              // Data dari backend: product_name, price
+
+              // Mapping data JSON dari handler_customer.js
+              // select: product_id, product_name, price, kategori_id
+              final id = product['product_id'] ?? '';
               final name = product['product_name'] ?? 'No Name';
               final price = double.tryParse(product['price'].toString()) ?? 0;
 
@@ -83,9 +90,7 @@ class _ProductListPageState extends State<ProductListPage> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => ProductDetailPage(
-                          productId:
-                              product['product_id'] ??
-                              '', // Pastikan key sesuai JSON backend
+                          productId: id,
                           productName: name,
                           productPrice: price,
                         ),

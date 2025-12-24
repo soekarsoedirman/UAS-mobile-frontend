@@ -1,9 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../services/api.dart'; // Import API Service
 
-class CartPage extends StatelessWidget {
+class CartPage extends StatefulWidget {
   const CartPage({super.key});
 
+  @override
+  State<CartPage> createState() => _CartPageState();
+}
+
+class _CartPageState extends State<CartPage> {
   static const Color primaryGreen = Color(0xFF2ECC71);
+  final ApiService _apiService = ApiService();
+  bool isLoading = true;
+  List<dynamic> cartItems = [];
+
+  // Controller untuk input alamat
+  final postalCtrl = TextEditingController();
+  final stateCtrl = TextEditingController();
+  final cityCtrl = TextEditingController();
+  final regionCtrl = TextEditingController();
+  // Shipmode ID sederhana (misal: 1=Standard, 2=Express)
+  final shipModeCtrl = TextEditingController(text: "1");
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCart();
+  }
+
+  void fetchCart() async {
+    setState(() => isLoading = true);
+    final data = await _apiService.getCart();
+    setState(() {
+      cartItems = data;
+      isLoading = false;
+    });
+  }
+
+  void deleteItem(String cartId) async {
+    bool success = await _apiService.deleteCartItem(cartId);
+    if (success) {
+      fetchCart(); // Refresh list setelah hapus
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Item dihapus")));
+      }
+    }
+  }
+
+  void processCheckout() async {
+    Navigator.pop(context); // Tutup dialog
+    setState(() => isLoading = true);
+
+    // Ambil input atau gunakan default dummy jika kosong agar tidak error di backend
+    bool success = await _apiService.checkout(
+      postalCode: postalCtrl.text.isNotEmpty ? postalCtrl.text : "12345",
+      state: stateCtrl.text.isNotEmpty ? stateCtrl.text : "Banten",
+      city: cityCtrl.text.isNotEmpty ? cityCtrl.text : "Pandeglang",
+      region: regionCtrl.text.isNotEmpty ? regionCtrl.text : "West",
+      shipmodeId: int.tryParse(shipModeCtrl.text) ?? 1,
+    );
+
+    setState(() => isLoading = false);
+
+    if (success) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Order berhasil dibuat!"),
+          backgroundColor: primaryGreen,
+        ),
+      );
+      fetchCart(); // Keranjang akan kosong setelah checkout
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Gagal membuat order"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   Color getStatusColor(String status) {
     return status == "Dikirim" ? primaryGreen : Colors.orange.shade600;
@@ -24,11 +104,11 @@ class CartPage extends StatelessWidget {
           content: SingleChildScrollView(
             child: Column(
               children: [
-                _input("Postal Code"),
-                _input("State"),
-                _input("City"),
-                _input("Region"),
-                _input("Ship Mode (Regular / Express)"),
+                _input("Postal Code", postalCtrl),
+                _input("State", stateCtrl),
+                _input("City", cityCtrl),
+                _input("Region", regionCtrl),
+                _input("Ship Mode ID (1=Std, 2=Exp)", shipModeCtrl),
               ],
             ),
           ),
@@ -39,13 +119,8 @@ class CartPage extends StatelessWidget {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: primaryGreen),
+              onPressed: processCheckout,
               child: const Text("Confirm Order"),
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Order berhasil dibuat")),
-                );
-              },
             ),
           ],
         );
@@ -53,10 +128,11 @@ class CartPage extends StatelessWidget {
     );
   }
 
-  Widget _input(String label) {
+  Widget _input(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: TextField(
+        controller: controller,
         decoration: InputDecoration(
           labelText: label,
           filled: true,
@@ -72,10 +148,11 @@ class CartPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cartItems = [
-      {"name": "Produk A", "price": 150000, "qty": 2, "status": "Diproses"},
-      {"name": "Produk B", "price": 50000, "qty": 1, "status": "Dikirim"},
-    ];
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FDF9),
@@ -85,122 +162,117 @@ class CartPage extends StatelessWidget {
         foregroundColor: primaryGreen,
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: cartItems.length,
-              itemBuilder: (context, index) {
-                final item = cartItems[index];
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Expanded(
+                  child: cartItems.isEmpty
+                      ? const Center(child: Text("Keranjang Kosong"))
+                      : ListView.builder(
+                          itemCount: cartItems.length,
+                          itemBuilder: (context, index) {
+                            final item = cartItems[index];
+                            // Mapping sesuai JSON dari handler_customer.js -> cartlist
+                            final name = item['product_name'] ?? 'Unknown';
+                            final price =
+                                double.tryParse(item['price'].toString()) ?? 0;
+                            final qty = item['quantity'] ?? 0;
+                            final cartId = item['cart_id'].toString();
 
-                return Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryGreen.withOpacity(0.08),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ICON
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: primaryGreen.withOpacity(0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.shopping_bag,
-                          color: primaryGreen,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-
-                      // INFO
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item["name"].toString(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                            return Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 6,
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "Rp ${item["price"]}",
-                              style: const TextStyle(
-                                color: primaryGreen,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text("Qty: ${item["qty"]}"),
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: getStatusColor(
-                                  item["status"].toString(),
-                                ),
-                                borderRadius: BorderRadius.circular(6),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primaryGreen.withOpacity(0.08),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                              child: Text(
-                                item["status"].toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: primaryGreen.withOpacity(0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.shopping_bag,
+                                      color: primaryGreen,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          currencyFormatter.format(price),
+                                          style: const TextStyle(
+                                            color: primaryGreen,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text("Qty: $qty"),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.delete,
+                                      color: Colors.red.shade400,
+                                    ),
+                                    onPressed: () => deleteItem(cartId),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                      ),
-
-                      // DELETE
-                      Icon(Icons.delete, color: Colors.red.shade400),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // 🔥 TOMBOL ORDER
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryGreen,
-                minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              onPressed: () => showOrderDialog(context),
-              child: const Text(
-                "ORDER SEKARANG",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryGreen,
+                      minimumSize: const Size(double.infinity, 52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: cartItems.isEmpty
+                        ? null
+                        : () => showOrderDialog(context),
+                    child: const Text(
+                      "ORDER SEKARANG",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

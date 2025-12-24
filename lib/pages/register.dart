@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/pages/dashboard.dart';
-import 'package:frontend/pages/home.dart';
 import '../services/api.dart';
 import 'login.dart';
 
@@ -31,7 +29,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => isLoading = true);
 
-    int roleId = (selectedSegment == "Customer") ? 2 : 1;
+    // Mapping Role ID: 1 = Admin, 2 = Customer
+    // Di backend, authregister butuh: username, roleID, email, password, segmen
+    // Disini kita asumsi 'Customer' -> roleID 2, yang lain bisa jadi roleID 2 juga tapi beda segmen
+    // ATAU Anda bisa set aturan: Jika segment Corporate/Home Office -> Role 1 (Seller/Admin)?
+    // Mari asumsi semua register di sini adalah Customer (Role 2) kecuali kita punya opsi khusus.
+    // Tapi di UI ada opsi "Corporate". Kita set Role 2 (Customer) untuk semua, karena Admin biasanya dibuat manual di DB.
+    int roleId = 2;
 
     final response = await ApiService().register(
       usernameCtrl.text,
@@ -45,7 +49,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (!mounted) return;
 
-    if (response.containsKey('tokenjwt') || response['status'] == 'success') {
+    // Backend return code 201 dengan JSON berisi tokenjwt jika sukses
+    if (response['tokenjwt'] != null ||
+        response['status'] == 'success' ||
+        response.containsKey('username')) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Registrasi Berhasil! Silakan Login")),
       );
@@ -62,6 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    // UI TETAP SAMA
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8FB),
       body: Center(
@@ -77,7 +85,6 @@ class _RegisterPageState extends State<RegisterPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ICON
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -90,24 +97,18 @@ class _RegisterPageState extends State<RegisterPage> {
                       color: Colors.green,
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   const Text(
                     "Daftar Akun",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-
                   const SizedBox(height: 6),
-
                   const Text(
                     "Buat akun untuk melanjutkan",
                     style: TextStyle(color: Colors.grey),
                   ),
-
                   const SizedBox(height: 24),
 
-                  // USERNAME
                   TextField(
                     controller: usernameCtrl,
                     decoration: _inputStyle(
@@ -115,10 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       icon: Icons.person_outline,
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // EMAIL
                   TextField(
                     controller: emailCtrl,
                     decoration: _inputStyle(
@@ -126,10 +124,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       icon: Icons.email_outlined,
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // PASSWORD
                   TextField(
                     controller: passwordCtrl,
                     obscureText: true,
@@ -139,10 +134,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       suffix: Icons.visibility_off,
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // SEGMENT DROPDOWN
                   DropdownButtonFormField<String>(
                     decoration: _dropdownStyle("Segmen"),
                     value: selectedSegment,
@@ -160,14 +152,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Text("Corporate"),
                       ),
                     ],
-                    onChanged: (value) {
-                      selectedSegment = value;
-                    },
+                    onChanged: (value) =>
+                        setState(() => selectedSegment = value),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // REGISTER BUTTON
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -178,45 +166,19 @@ class _RegisterPageState extends State<RegisterPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        if (usernameCtrl.text.isEmpty ||
-                            emailCtrl.text.isEmpty ||
-                            passwordCtrl.text.isEmpty ||
-                            selectedSegment == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Semua field wajib diisi"),
+                      onPressed: isLoading ? null : handleRegister,
+                      child: isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              "Daftar",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          );
-                          return;
-                        }
-
-                        if (selectedSegment == "Customer") {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => HomePage()),
-                          );
-                        } else {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SellerDashboardPage(),
-                            ),
-                          );
-                        }
-                      },
-                      child: const Text(
-                        "Daftar",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text(
@@ -233,7 +195,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  // ================= INPUT STYLE =================
   InputDecoration _inputStyle({
     required String hint,
     required IconData icon,
