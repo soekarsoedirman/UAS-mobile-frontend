@@ -3,33 +3,32 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = "http://localhost:3000";
+  static const String baseUrl = 'http://localhost:3000';
 
-  // --- 1. TOKEN HELPER (Ini fungsi getHeaders yang hilang) ---
-  Future<String?> getToken() async {
+  // --- HELPER: GET HEADERS (WITH TOKEN) ---
+  Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
-  }
-
-  Future<Map<String, String>> getHeaders() async {
-    final token = await getToken();
+    final token = prefs.getString('token');
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
     };
   }
 
-  // --- 2. AUTHENTICATION ---
+  // --- AUTHENTICATION ---
+
   Future<Map<String, dynamic>> login(String email, String password) async {
+    final url = Uri.parse('$baseUrl/login');
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/login'),
+        url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
       );
+      // Decode response agar bisa dibaca UI
       return jsonDecode(response.body);
     } catch (e) {
-      return {'status': 'error', 'message': 'Koneksi gagal: $e'};
+      return {'status': 'error', 'message': e.toString()};
     }
   }
 
@@ -40,9 +39,10 @@ class ApiService {
     int roleId,
     String segmen,
   ) async {
+    final url = Uri.parse('$baseUrl/register');
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/register'),
+        url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': username,
@@ -54,96 +54,175 @@ class ApiService {
       );
       return jsonDecode(response.body);
     } catch (e) {
-      return {'status': 'error', 'message': 'Koneksi gagal: $e'};
+      return {'status': 'error', 'message': e.toString()};
     }
   }
 
-  // --- 3. ADMIN DASHBOARD ---
-  Future<Map<String, dynamic>> getDashboard() async {
-    try {
-      final headers = await getHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/dashboard'),
-        headers: headers,
-      );
-      return jsonDecode(response.body);
-    } catch (e) {
-      print("Dashboard Error: $e");
-      return {'status': 'error'};
-    }
-  }
+  // --- PRODUCT & CATEGORY (HOME) ---
 
-  // --- 4. PRODUK (LIST & DETAIL) ---
-
-  // Ambil List Produk (Public)
-  Future<List<dynamic>> getProducts() async {
+  // Endpoint: / (Home handler)
+  Future<List<dynamic>> getCategories() async {
+    final url = Uri.parse('$baseUrl/');
     try {
-      final response = await http.get(Uri.parse('$baseUrl/products'));
-      final json = jsonDecode(response.body);
-      if (json['status'] == 'success') {
-        return json['data'];
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return json['data'] ?? [];
       }
       return [];
     } catch (e) {
-      print("Error getProducts: $e");
+      print("Error fetching categories: $e");
       return [];
     }
   }
 
-  // Tambah Produk Baru (Admin)
-  Future<bool> addProduct(String name, int subCatId, double price) async {
-    final headers = await getHeaders();
+  // Endpoint: /search (ambil semua produk untuk list)
+  Future<List<dynamic>> getProducts() async {
+    final url = Uri.parse(
+      '$baseUrl/search',
+    ); // Default search tanpa query = all products limit 10
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return json['data'] ?? [];
+      }
+      return [];
+    } catch (e) {
+      print("Error fetching products: $e");
+      return [];
+    }
+  }
+
+  // Endpoint: /product/:id
+  Future<Map<String, dynamic>?> getProductDetail(String id) async {
+    final url = Uri.parse('$baseUrl/product/$id');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return json['data'];
+      }
+      return null;
+    } catch (e) {
+      print("Error fetching detail: $e");
+      return null;
+    }
+  }
+
+  // Endpoint (Admin): /product (Add Product)
+  Future<bool> addProduct(String name, int subCategoryId, double price) async {
+    final url = Uri.parse('$baseUrl/product');
+    final headers = await _getHeaders();
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/products'),
+        url,
         headers: headers,
         body: jsonEncode({
           'product_name': name,
-          'subkategori_id': subCatId,
+          'subkategori_id': subCategoryId,
           'price': price,
         }),
       );
-      return response.statusCode == 200 || response.statusCode == 201;
+      return response.statusCode == 200;
     } catch (e) {
-      print("Error addProduct: $e");
+      print("Error add product: $e");
       return false;
     }
   }
 
-  // Ambil Detail Produk
-  Future<Map<String, dynamic>?> getProductDetail(String id) async {
-    final headers = await getHeaders(); // Sekarang fungsi ini sudah dikenali
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/products/$id'),
-        headers: headers,
-      );
-      final json = jsonDecode(response.body);
-      if (json['status'] == 'success') {
-        return json['data'];
-      }
-      return null;
-    } catch (e) {
-      print("Error detail: $e");
-      return null;
-    }
-  }
+  // --- CART & ORDER ---
 
-  // --- 5. TRANSAKSI (CART) ---
-
-  // Tambah ke Keranjang
+  // Endpoint: /cart/:id (Add to Cart)
   Future<bool> addToCart(String productId, int quantity) async {
-    final headers = await getHeaders();
+    final url = Uri.parse('$baseUrl/cart/$productId');
+    final headers = await _getHeaders();
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/products/$productId/cart'),
+        url,
         headers: headers,
         body: jsonEncode({'quantity': quantity}),
       );
-      return response.statusCode == 200 || response.statusCode == 201;
+      return response.statusCode == 200;
     } catch (e) {
-      print("Error cart: $e");
+      print("Error add to cart: $e");
       return false;
+    }
+  }
+
+  // Endpoint: /cart (Get Cart List)
+  Future<List<dynamic>> getCart() async {
+    final url = Uri.parse('$baseUrl/cart');
+    final headers = await _getHeaders();
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return json['data'] ?? [];
+      }
+      return [];
+    } catch (e) {
+      print("Error get cart: $e");
+      return [];
+    }
+  }
+
+  // Endpoint: /cart/:id (Delete/Drop Cart)
+  Future<bool> deleteCartItem(String cartId) async {
+    final url = Uri.parse('$baseUrl/cart/$cartId');
+    final headers = await _getHeaders();
+    try {
+      final response = await http.delete(url, headers: headers);
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error delete cart: $e");
+      return false;
+    }
+  }
+
+  // Endpoint: /order (Checkout)
+  Future<bool> checkout({
+    required String postalCode,
+    required String state,
+    required String city,
+    required String region,
+    required int shipmodeId,
+  }) async {
+    final url = Uri.parse('$baseUrl/order');
+    final headers = await _getHeaders();
+    try {
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: jsonEncode({
+          'postal_code': postalCode,
+          'state': state,
+          'city': city,
+          'region': region,
+          'shipmode_id': shipmodeId,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error checkout: $e");
+      return false;
+    }
+  }
+
+  // Endpoint: /order (Get Order List)
+  Future<List<dynamic>> getOrderHistory() async {
+    final url = Uri.parse('$baseUrl/order'); // GET method
+    final headers = await _getHeaders();
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return json['data'] ?? [];
+      }
+      return [];
+    } catch (e) {
+      print("Error fetching orders: $e");
+      return [];
     }
   }
 }

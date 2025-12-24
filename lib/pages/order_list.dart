@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../services/api.dart';
 
-class SellerOrderListPage extends StatelessWidget {
+class SellerOrderListPage extends StatefulWidget {
   const SellerOrderListPage({super.key});
 
+  @override
+  State<SellerOrderListPage> createState() => _SellerOrderListPageState();
+}
+
+class _SellerOrderListPageState extends State<SellerOrderListPage> {
+  late Future<List<dynamic>> _ordersFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _ordersFuture = ApiService().getOrderHistory();
+  }
+
   Color getStatusColor(String status) {
-    if (status == "Success") {
+    if (status == "Dikirim" || status == "Success") {
       return Colors.green;
-    } else if (status == "Pending") {
+    } else if (status == "Menunggu Konfirmasi" || status == "Pending") {
       return Colors.orange;
     } else {
       return Colors.grey;
@@ -15,131 +30,140 @@ class SellerOrderListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orders = [
-      {
-        "productName": "Sayur Bayam",
-        "qty": 2,
-        "price": 2000,
-        "date": "12-12-2025",
-        "shipMode": "Regular",
-        "status": "Pending",
-        "store": "Supermarket",
-      },
-      {
-        "productName": "Buah Apel",
-        "qty": 1,
-        "price": 5000,
-        "date": "11-12-2025",
-        "shipMode": "Express",
-        "status": "Success",
-        "store": "Pasar Segar",
-      },
-      {
-        "productName": "Daging Sapi",
-        "qty": 1,
-        "price": 100000,
-        "date": "10-12-2025",
-        "shipMode": "Regular",
-        "status": "Success",
-        "store": "Butcher Shop",
-      },
-    ];
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Order List Seller",
+          "Order List",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.green,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: ListView.builder(
-        itemCount: orders.length,
-        itemBuilder: (context, index) {
-          final order = orders[index];
+      body: FutureBuilder<List<dynamic>>(
+        future: _ordersFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text("Belum ada riwayat pesanan"));
+          }
 
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
-              ],
-            ),
-            child: Row(
-              children: [
-                // ICON LEFT
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.shopping_bag, color: Colors.green),
-                ),
+          final orders = snapshot.data!;
 
-                const SizedBox(width: 12),
+          return ListView.builder(
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              final order = orders[index];
 
-                // CENTER TEXT
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order["productName"].toString(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        order["store"].toString(),
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Qty: ${order["qty"]} • ${order["shipMode"]}",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              // Mapping data dari backend (handler_customer.js -> orderlst)
+              // Columns: order_date, product_name, quantity, sales, status, shipmode
+              final productName = order["product_name"] ?? "Unknown";
+              final status = order["status"] ?? "-";
+              final sales = double.tryParse(order["sales"].toString()) ?? 0;
+              final qty = order["quantity"] ?? 0;
+              final shipMode = order["shipmode"] ?? "-";
 
-                // RIGHT SIDE
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      "Rp ${order["price"]}",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      order["status"].toString(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: getStatusColor(order["status"].toString()),
-                        fontWeight: FontWeight.w600,
-                      ),
+              // Format tanggal
+              String dateStr = order["order_date"] ?? "-";
+              try {
+                // Asumsi date format ISO, ubah agar rapi
+                DateTime dt = DateTime.parse(dateStr);
+                dateStr = DateFormat('dd-MM-yyyy').format(dt);
+              } catch (e) {}
+
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
                     ),
                   ],
                 ),
-              ],
-            ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.shopping_bag,
+                        color: Colors.green,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            productName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            dateStr,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Qty: $qty • $shipMode",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          currencyFormatter.format(sales),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          status,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: getStatusColor(status),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
           );
         },
       ),

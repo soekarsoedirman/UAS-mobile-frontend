@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home.dart';
-import 'dashboard.dart'; // Pastikan nama file dashboard Anda benar (dashboard.dart atau dasboard.dart)
+import 'dashboard.dart';
 import 'register.dart';
 import '../services/api.dart';
 
@@ -18,6 +18,14 @@ class _LoginPageState extends State<LoginPage> {
   bool isLoading = false;
 
   void handleLogin() async {
+    // Validasi sederhana
+    if (emailCtrl.text.isEmpty || passwordCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email dan Password harus diisi")),
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
 
     final response = await ApiService().login(
@@ -30,15 +38,23 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
 
     if (response['status'] == 'success') {
-      // Simpan Token
+      final data = response['data'];
+      final token = data['token'];
+      final role =
+          data['role']?.toString().toLowerCase() ??
+          ''; // 'admin' atau 'customer'
+      final roleId = data['role_id'] ?? 0; // ID Role
+
+      // Simpan ke SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', response['data']['token']);
+      await prefs.setString('token', token);
+      await prefs.setString('role', role);
 
-      // Cek Role (Admin / Customer)
-      // Backend mengembalikan role_name di handler_auth.js [cite: 6]
-      String role = response['data']['role'].toString().toLowerCase();
+      // Navigasi Berdasarkan Role
+      // Backend (handlre_admin.js) cek role_id !== 1 -> Access Denied.
+      // Jadi role_id 1 = Admin, 2 = Customer.
 
-      if (role.contains('admin')) {
+      if (roleId == 1 || role.contains('admin')) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const SellerDashboardPage()),
@@ -51,13 +67,17 @@ class _LoginPageState extends State<LoginPage> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response['message'] ?? "Login Gagal")),
+        SnackBar(
+          content: Text(response['message'] ?? "Login Gagal"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // UI TETAP SAMA SEPERTI FILE ASLI
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8FB),
       body: Center(
@@ -92,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    "Masuk untuk mengelola produk anda",
+                    "Masuk untuk melanjutkan",
                     style: TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 24),
@@ -153,7 +173,7 @@ class _LoginPageState extends State<LoginPage> {
                   TextButton(
                     onPressed: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => RegisterPage()),
+                      MaterialPageRoute(builder: (_) => const RegisterPage()),
                     ),
                     child: const Text(
                       "Belum punya akun? Daftar Sekarang",

@@ -11,7 +11,7 @@ class AddProductPage extends StatefulWidget {
 class _AddProductPageState extends State<AddProductPage> {
   final nameCtrl = TextEditingController();
   final subCatCtrl = TextEditingController();
-  final priceCtrl = TextEditingController(); // Controller Harga Baru
+  final priceCtrl = TextEditingController();
   bool isLoading = false;
 
   void saveProduct() async {
@@ -22,27 +22,37 @@ class _AddProductPageState extends State<AddProductPage> {
     if (name.isEmpty || subCat == 0 || price == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Isi Nama, ID Sub Kategori (Angka), dan Harga"),
+          content: Text(
+            "Isi Nama, ID Sub Kategori (Angka), dan Harga yang valid",
+          ),
         ),
       );
       return;
     }
 
     setState(() => isLoading = true);
+
+    // Panggil API Service
     bool success = await ApiService().addProduct(name, subCat, price);
+
     setState(() => isLoading = false);
 
+    if (!mounted) return;
+
     if (success) {
-      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Produk Berhasil Disimpan")));
-      Navigator.pop(context);
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
+      Navigator.pop(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Gagal menyimpan produk")));
+        true,
+      ); // Return true agar halaman sebelumnya bisa refresh
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Gagal menyimpan produk, pastikan Anda Admin"),
+        ),
+      );
     }
   }
 
@@ -74,7 +84,6 @@ class _AddProductPageState extends State<AddProductPage> {
               ),
             ),
             const SizedBox(height: 12),
-            // Input Harga Baru
             TextField(
               controller: priceCtrl,
               keyboardType: TextInputType.number,
