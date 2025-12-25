@@ -197,7 +197,7 @@ class _SellerOrderListPageState extends State<SellerOrderListPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              order.customerName, 
+                              order.customerName,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -208,29 +208,34 @@ class _SellerOrderListPageState extends State<SellerOrderListPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              "Order ID: ${order.orderId.length > 8 ? order.orderId.substring(0, 8) : order.orderId}...", 
+                              "Order ID: ${order.orderId.length > 8 ? order.orderId.substring(0, 8) : order.orderId}...",
                               style: TextStyle(
                                 color: Colors.grey.shade500,
                                 fontSize: 12,
                               ),
                             ),
                             const SizedBox(height: 4),
-                            // Status & Tanggal
-                            Row(
+
+                            // --- PERBAIKAN DI SINI (Ganti Row jadi Wrap) ---
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center, // Ratakan tengah secara vertikal
+                              spacing: 8,     // Jarak antar elemen (pengganti SizedBox width)
+                              runSpacing: 4,  // Jarak antar baris jika turun ke bawah
                               children: [
                                 _buildStatusBadge(order.status),
-                                const SizedBox(width: 8),
+                                // Hapus SizedBox(width: 8) karena sudah diganti spacing
                                 Text(
-                                  parsedDate != null 
-                                    ? dateFormatter.format(parsedDate) 
-                                    : order.orderDate,
+                                  parsedDate != null
+                                      ? dateFormatter.format(parsedDate)
+                                      : order.orderDate,
                                   style: TextStyle(
-                                    fontSize: 11, 
-                                    color: Colors.grey.shade400
+                                      fontSize: 11,
+                                      color: Colors.grey.shade400
                                   ),
                                 ),
                               ],
                             )
+                            // -----------------------------------------------
                           ],
                         ),
                       ),
