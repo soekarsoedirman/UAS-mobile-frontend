@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'listproduct.dart';
 import 'keranjang.dart';
 import 'order_list.dart';
+import 'login.dart'; // Import halaman Login
 import '../services/api.dart';
 
 class HomePage extends StatefulWidget {
@@ -37,11 +38,28 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    setState(() {
-      categories = uniqueCats.values.toList();
-      subCategories = data;
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        categories = uniqueCats.values.toList();
+        subCategories = data;
+        isLoading = false;
+      });
+    }
+  }
+
+  // --- FUNGSI LOGOUT (BARU) ---
+  void _handleLogout() async {
+    // 1. Panggil service logout (hapus token lokal)
+    await _apiService.logout();
+
+    if (!mounted) return;
+
+    // 2. Arahkan kembali ke Login Page dan hapus history route
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
   }
 
   @override
@@ -52,6 +70,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.green,
         title: const Text("Home"),
         actions: [
+          // ICON KERANJANG (EXISTING)
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () => Navigator.push(
@@ -59,6 +78,42 @@ class _HomePageState extends State<HomePage> {
               MaterialPageRoute(builder: (_) => const CartPage()),
             ),
           ),
+
+          // --- ICON LOGOUT (BARU) ---
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: "Keluar",
+            onPressed: () {
+              // Dialog Konfirmasi agar tidak terpencet tidak sengaja
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("Konfirmasi"),
+                  content: const Text("Apakah Anda yakin ingin keluar?"),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Batal",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Tutup dialog
+                        _handleLogout(); // Jalankan logout
+                      },
+                      child: const Text(
+                        "Ya, Keluar",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8), // Sedikit jarak di kanan
         ],
       ),
       body: isLoading
@@ -174,16 +229,18 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.list), label: "Order List"),
         ],
         onTap: (index) {
-          if (index == 1)
+          if (index == 1) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const CartPage()),
             );
-          if (index == 2)
+          }
+          if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const SellerOrderListPage()),
             );
+          }
         },
       ),
     );

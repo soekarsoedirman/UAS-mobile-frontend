@@ -21,7 +21,7 @@ class EditProductPage extends StatefulWidget {
 class _EditProductPageState extends State<EditProductPage> {
   final _formKey = GlobalKey<FormState>();
   final ProductService _service = ProductService();
-  
+
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _subCatController; // Idealnya ini dropdown
@@ -30,14 +30,18 @@ class _EditProductPageState extends State<EditProductPage> {
 
   // Warna tema (Konsisten dengan halaman lain)
   final Color _primaryColor = const Color(0xFF0D1F3C); // Dark Blue
-  final Color _accentColor = const Color(0xFF27AE60);  // Green
+  final Color _accentColor = const Color(0xFF27AE60); // Green
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.currentName);
-    _priceController = TextEditingController(text: widget.currentPrice.toInt().toString());
-    _subCatController = TextEditingController(text: "17"); // Default/Placeholder dulu
+    _priceController = TextEditingController(
+      text: widget.currentPrice.toInt().toString(),
+    );
+    _subCatController = TextEditingController(
+      text: "17",
+    ); // Default/Placeholder dulu
   }
 
   @override
@@ -63,7 +67,10 @@ class _EditProductPageState extends State<EditProductPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Produk berhasil diupdate!"), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text("Produk berhasil diupdate!"),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pop(context, true); // Kembali dengan success flag
       }
@@ -177,7 +184,10 @@ class _EditProductPageState extends State<EditProductPage> {
                         // Nama Produk
                         TextFormField(
                           controller: _nameController,
-                          decoration: _inputDecoration("Nama Produk", Icons.shopping_bag_outlined),
+                          decoration: _inputDecoration(
+                            "Nama Produk",
+                            Icons.shopping_bag_outlined,
+                          ),
                           validator: (v) => v!.isEmpty ? "Wajib diisi" : null,
                         ),
                         const SizedBox(height: 16),
@@ -186,8 +196,13 @@ class _EditProductPageState extends State<EditProductPage> {
                         TextFormField(
                           controller: _priceController,
                           keyboardType: TextInputType.number,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          decoration: _inputDecoration("Harga (\$)", Icons.attach_money),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          decoration: _inputDecoration(
+                            "Harga (\$)",
+                            Icons.attach_money,
+                          ),
                           validator: (v) => v!.isEmpty ? "Wajib diisi" : null,
                         ),
                         const SizedBox(height: 16),
@@ -196,12 +211,17 @@ class _EditProductPageState extends State<EditProductPage> {
                         TextFormField(
                           controller: _subCatController,
                           keyboardType: TextInputType.number,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          decoration: _inputDecoration("Sub Kategori ID", Icons.category_outlined),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          decoration: _inputDecoration(
+                            "Sub Kategori ID",
+                            Icons.category_outlined,
+                          ),
                         ),
-                        
+
                         const SizedBox(height: 32),
-                        
+
                         // Tombol Aksi
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -219,7 +239,10 @@ class _EditProductPageState extends State<EditProductPage> {
                                 backgroundColor: _primaryColor, // Dark Blue
                                 foregroundColor: Colors.white,
                                 elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -227,13 +250,18 @@ class _EditProductPageState extends State<EditProductPage> {
                               onPressed: _isLoading ? null : _updateProduct,
                               child: _isLoading
                                   ? const SizedBox(
-                                      height: 20, 
-                                      width: 20, 
-                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
                                     )
                                   : const Text(
                                       "Simpan Perubahan",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                             ),
                           ],

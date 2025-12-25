@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/dashboard_model.dart';
 import '../services/dashboard_servis.dart';
-import '../pages/statistik.dart'; 
+import '../services/api.dart'; // Import API Service untuk Logout
+import '../pages/statistik.dart';
 import '../pages/tambah_produk.dart';
 import '../pages/listproductadmin.dart';
+import '../pages/login.dart'; // Import Halaman Login
 
 class SellerDashboardPage extends StatefulWidget {
   const SellerDashboardPage({super.key});
@@ -19,7 +21,7 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
 
   // Warna tema (Konsisten dengan halaman lain)
   final Color _primaryColor = const Color(0xFF0D1F3C); // Dark Blue
-  final Color _accentColor = const Color(0xFF27AE60);  // Green
+  final Color _accentColor = const Color(0xFF27AE60); // Green
   final Color _softGreenBg = const Color(0xFFEAF9F2); // Light Green Background
 
   // Formatter uang (Dolar)
@@ -41,6 +43,21 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
     });
   }
 
+  // --- FUNGSI LOGOUT ADMIN ---
+  void _handleLogout() async {
+    // Panggil fungsi logout dari ApiService (menghapus token lokal)
+    await ApiService().logout();
+
+    if (!mounted) return;
+
+    // Arahkan kembali ke Login Page dan hapus semua history route
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,24 +67,50 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
         elevation: 0,
         title: Text(
           "Seller Home",
-          style: TextStyle(
-            color: _primaryColor,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold),
         ),
         iconTheme: IconThemeData(color: Colors.grey.shade600),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                shape: BoxShape.circle,
+            // --- UBAH DARI CONTAINER BIASA MENJADI POPUP MENU ---
+            child: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'logout') {
+                  _handleLogout();
+                }
+              },
+              offset: const Offset(0, 50),
+              // Child ini menjaga tampilan UI tetap sama persis seperti sebelumnya
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.person_outline, color: _primaryColor),
               ),
-              child: Icon(Icons.person_outline, color: _primaryColor),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'profile',
+                  child: ListTile(
+                    leading: Icon(Icons.account_circle),
+                    title: Text('Profil Admin'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  child: ListTile(
+                    leading: Icon(Icons.logout, color: Colors.red),
+                    title: Text('Keluar', style: TextStyle(color: Colors.red)),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
-          )
+          ),
         ],
       ),
       body: RefreshIndicator(
@@ -78,7 +121,9 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
           builder: (context, snapshot) {
             // 1. Loading
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator(color: _accentColor));
+              return Center(
+                child: CircularProgressIndicator(color: _accentColor),
+              );
             }
 
             // 2. Error
@@ -87,13 +132,21 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Error: ${snapshot.error}", style: const TextStyle(color: Colors.red)),
+                    Text(
+                      "Error: ${snapshot.error}",
+                      style: const TextStyle(color: Colors.red),
+                    ),
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: _refreshData,
-                      style: ElevatedButton.styleFrom(backgroundColor: _primaryColor),
-                      child: const Text("Coba Lagi", style: TextStyle(color: Colors.white)),
-                    )
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryColor,
+                      ),
+                      child: const Text(
+                        "Coba Lagi",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -132,7 +185,10 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                             children: [
                               Text(
                                 "Total Pendapatan",
-                                style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontSize: 14,
+                                ),
                               ),
                               Container(
                                 padding: const EdgeInsets.all(8),
@@ -140,8 +196,11 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                                   color: Colors.white.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white),
-                              )
+                                child: const Icon(
+                                  Icons.account_balance_wallet_outlined,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -155,9 +214,12 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                             "Update terbaru hari ini",
-                             style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
-                          )
+                            "Update terbaru hari ini",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.5),
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -167,16 +229,28 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                     // ================= TOTAL PRODUK & TRANSAKSI =================
                     Row(
                       children: [
-                        _smallCard("Total Produk", data.totalProducts.toString(), Icons.inventory_2_outlined),
+                        _smallCard(
+                          "Total Produk",
+                          data.totalProducts.toString(),
+                          Icons.inventory_2_outlined,
+                        ),
                         const SizedBox(width: 16),
-                        _smallCard("Total Transaksi", data.totalTransactions.toString(), Icons.receipt_long_outlined),
+                        _smallCard(
+                          "Total Transaksi",
+                          data.totalTransactions.toString(),
+                          Icons.receipt_long_outlined,
+                        ),
                       ],
                     ),
 
                     const SizedBox(height: 32),
                     Text(
-                      "Menu Utama", 
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: _primaryColor)
+                      "Menu Utama",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: _primaryColor,
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -189,7 +263,9 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                         // Navigasi ke halaman Dashboard Statistik (DashboardPage)
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const DashboardPage()),
+                          MaterialPageRoute(
+                            builder: (_) => const DashboardPage(),
+                          ),
                         );
                       },
                     ),
@@ -203,7 +279,9 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const ProductListPage()),
+                          MaterialPageRoute(
+                            builder: (_) => const ProductListPage(),
+                          ),
                         );
                       },
                     ),
@@ -215,9 +293,11 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AddProductPage()),
+                          MaterialPageRoute(
+                            builder: (_) => const AddProductPage(),
+                          ),
                         );
-                      }
+                      },
                     ),
                   ],
                 ),
@@ -285,7 +365,7 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
     required String text,
     required IconData icon,
     VoidCallback? onTap, // Boleh null untuk disable button
-    Color? color, 
+    Color? color,
   }) {
     final backgroundColor = color ?? _primaryColor;
     final isEnabled = onTap != null;
@@ -297,7 +377,8 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: Colors.grey[100], // Warna saat disabled lebih terang
+          disabledBackgroundColor:
+              Colors.grey[100], // Warna saat disabled lebih terang
           disabledForegroundColor: Colors.grey[400],
           elevation: isEnabled ? 2 : 0,
           shadowColor: backgroundColor.withOpacity(0.3),
@@ -321,7 +402,11 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
               ),
             ),
             if (isEnabled)
-              const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.white70),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: Colors.white70,
+              ),
           ],
         ),
       ),

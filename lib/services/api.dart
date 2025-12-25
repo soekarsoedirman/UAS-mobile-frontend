@@ -58,6 +58,22 @@ class ApiService {
     }
   }
 
+  Future<bool> logout() async {
+    try {
+      final url = Uri.parse('$baseUrl/logout');
+
+      await http.post(url);
+    } catch (e) {
+      print("Logout server error: $e");
+    }
+
+    // 2. HAPUS TOKEN DARI HP (PENTING)
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    return true;
+  }
+
   // --- PRODUCT & CATEGORY (HOME) ---
 
   // Endpoint: /home (Home handler)
