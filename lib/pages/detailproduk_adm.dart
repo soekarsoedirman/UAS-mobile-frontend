@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../services/detail_adm.dart'; 
+import '../services/detail_adm.dart';
 import '../models/detail_adm_model.dart';
-import '../pages/editproduk.dart'; 
+import '../pages/editproduk.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productId;
@@ -22,16 +22,16 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   final ProductService _service = ProductService();
-  
+
   bool isLoading = true;
   bool isDeleting = false;
   ProductDetail? _detail;
 
   // Warna tema (Konsisten dengan halaman lain)
   final Color _primaryColor = const Color(0xFF0D1F3C); // Dark Blue
-  final Color _accentColor = const Color(0xFF27AE60);  // Green
+  final Color _accentColor = const Color(0xFF27AE60); // Green
   final Color _softGreenBg = const Color(0xFFEAF9F2); // Light Green Background
-  final Color _softRedBg = const Color(0xFFFFEBEE);   // Light Red Background
+  final Color _softRedBg = const Color(0xFFFFEBEE); // Light Red Background
 
   @override
   void initState() {
@@ -51,9 +51,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Gagal: $e")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Gagal: $e")));
       }
     }
   }
@@ -67,11 +67,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         content: const Text("Tindakan ini tidak dapat dibatalkan."),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false), 
-            child: Text("Batal", style: TextStyle(color: Colors.grey.shade600))
+            onPressed: () => Navigator.pop(context, false),
+            child: Text("Batal", style: TextStyle(color: Colors.grey.shade600)),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true), 
+            onPressed: () => Navigator.pop(context, true),
             child: const Text("Hapus", style: TextStyle(color: Colors.red)),
           ),
         ],
@@ -86,14 +86,20 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       await _service.deleteProduct(widget.productId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Produk berhasil dihapus"), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text("Produk berhasil dihapus"),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pop(context, true); // Kembali ke list & refresh
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Gagal menghapus: $e"), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text("Gagal menghapus: $e"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -107,7 +113,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     // Di sini saya gunakan $ sesuai konsistensi terakhir, tapi bisa diubah formatnya.
     final currencyFormatter = NumberFormat.currency(
       locale: 'en_US',
-      symbol: '\$', 
+      symbol: '\$',
       decimalDigits: 0,
     );
 
@@ -115,15 +121,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          "Detail Produk", 
-          style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold)
+          "Detail Produk",
+          style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.grey.shade600),
         elevation: 0,
       ),
-      body: isDeleting 
-          ? Center(child: CircularProgressIndicator(color: _accentColor)) 
+      body: isDeleting
+          ? Center(child: CircularProgressIndicator(color: _accentColor))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Center(
@@ -165,7 +171,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // NAMA PRODUK
                         Center(
                           child: Text(
@@ -179,18 +185,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        
+
                         // SUB KATEGORI (Subtitle)
                         Center(
                           child: isLoading
                               ? const SizedBox(
-                                  height: 15, width: 15, child: CircularProgressIndicator(strokeWidth: 2))
+                                  height: 15,
+                                  width: 15,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : Text(
                                   _detail?.subCategoryName ?? "Sub-Kategori",
-                                  style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 14,
+                                  ),
                                 ),
                         ),
-                        
+
                         const SizedBox(height: 24),
 
                         // TOMBOL EDIT & HAPUS
@@ -205,12 +219,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   MaterialPageRoute(
                                     builder: (_) => EditProductPage(
                                       productId: widget.productId,
-                                      currentName: _detail?.productName ?? widget.productName,
-                                      currentPrice: _detail?.price ?? widget.productPrice,
+                                      currentName:
+                                          _detail?.productName ??
+                                          widget.productName,
+                                      currentPrice:
+                                          _detail?.price ?? widget.productPrice,
                                     ),
                                   ),
                                 );
-                                
+
                                 if (result == true) {
                                   _fetchDetail();
                                 }
@@ -222,11 +239,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   color: _softGreenBg,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Icon(Icons.edit_outlined, color: _accentColor),
+                                child: Icon(
+                                  Icons.edit_outlined,
+                                  color: _accentColor,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 16),
-                            
+
                             // Tombol Hapus
                             InkWell(
                               onTap: _deleteProduct,
@@ -237,7 +257,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   color: _softRedBg,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(Icons.delete_outline, color: Colors.red),
+                                child: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                ),
                               ),
                             ),
                           ],
@@ -246,30 +269,42 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         const SizedBox(height: 32),
                         const Divider(height: 1),
                         const SizedBox(height: 24),
-                        
+
                         // INFO DETAIL LIST
                         Text(
                           "Informasi Detail",
                           style: TextStyle(
-                            fontSize: 16, 
-                            fontWeight: FontWeight.bold, 
-                            color: _primaryColor
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _primaryColor,
                           ),
                         ),
                         const SizedBox(height: 16),
 
                         _infoRow(
                           "Harga Satuan",
-                          currencyFormatter.format(_detail?.price ?? widget.productPrice),
+                          currencyFormatter.format(
+                            _detail?.price ?? widget.productPrice,
+                          ),
                           _accentColor,
                         ),
                         const SizedBox(height: 12),
-                        _infoRow("Kategori", isLoading ? "Loading..." : (_detail?.categoryName ?? "-")),
+                        _infoRow(
+                          "Kategori",
+                          isLoading
+                              ? "Loading..."
+                              : (_detail?.categoryName ?? "-"),
+                        ),
                         const SizedBox(height: 12),
-                        _infoRow("Sub Kategori", isLoading ? "Loading..." : (_detail?.subCategoryName ?? "-")),
-                        
+                        _infoRow(
+                          "Sub Kategori",
+                          isLoading
+                              ? "Loading..."
+                              : (_detail?.subCategoryName ?? "-"),
+                        ),
+
                         const SizedBox(height: 12),
-                         _infoRow("ID Produk", widget.productId),
+                        _infoRow("ID Produk", widget.productId),
                       ],
                     ),
                   ),
@@ -284,8 +319,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          label, 
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 14)
+          label,
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
         ),
         Text(
           value,

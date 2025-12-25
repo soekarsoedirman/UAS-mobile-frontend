@@ -28,7 +28,7 @@ class _ProductListPageState extends State<ProductListPage> {
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
-      symbol: 'Rp ',
+      symbol: '\$',
       decimalDigits: 0,
     );
 

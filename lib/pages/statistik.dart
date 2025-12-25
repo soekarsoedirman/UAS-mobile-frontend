@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-import '../models/statistik_model.dart'; 
-import '../services/statistik_servis.dart'; 
+import '../models/statistik_model.dart';
+import '../services/statistik_servis.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -24,7 +24,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   // Warna tema (Konsisten dengan halaman lain)
   final Color _primaryColor = const Color(0xFF0D1F3C); // Dark Blue
-  final Color _accentColor = const Color(0xFF27AE60);  // Green
+  final Color _accentColor = const Color(0xFF27AE60); // Green
   final Color _softGreenBg = const Color(0xFFEAF9F2); // Light Green Background
 
   // Formatter uang (Dolar)
@@ -144,14 +144,17 @@ class _DashboardPageState extends State<DashboardPage> {
       body: isLoading
           ? Center(child: CircularProgressIndicator(color: _accentColor))
           : errorMessage != null
-              ? Center(
-                  child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center),
-                ))
-              : _buildDashboard(),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          : _buildDashboard(),
     );
   }
 
@@ -202,8 +205,11 @@ class _DashboardPageState extends State<DashboardPage> {
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.attach_money, color: Colors.white),
-                    )
+                      child: const Icon(
+                        Icons.attach_money,
+                        color: Colors.white,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -297,28 +303,31 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     _title("Kategori"),
-                     _chartContainer(_pieChart(charts.salesByCategory, summary.totalSales)),
+                    _title("Kategori"),
+                    _chartContainer(
+                      _pieChart(charts.salesByCategory, summary.totalSales),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
-           Row(
+          Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     _title("Segmen"),
-                     _chartContainer(_pieChart(charts.salesBySegment, summary.totalSales)),
+                    _title("Segmen"),
+                    _chartContainer(
+                      _pieChart(charts.salesBySegment, summary.totalSales),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          
 
           const SizedBox(height: 24),
 
@@ -344,7 +353,13 @@ class _DashboardPageState extends State<DashboardPage> {
 
   // WIDGET HELPERS
 
-  Widget _kpiCardSmall(String title, String value, IconData icon, Color iconColor, Color bgColor) {
+  Widget _kpiCardSmall(
+    String title,
+    String value,
+    IconData icon,
+    Color iconColor,
+    Color bgColor,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -387,10 +402,7 @@ class _DashboardPageState extends State<DashboardPage> {
           const SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -459,7 +471,12 @@ class _DashboardPageState extends State<DashboardPage> {
     return SizedBox(
       height: 250,
       child: Padding(
-        padding: const EdgeInsets.only(right: 16.0, left: 6.0, bottom: 8.0, top: 10),
+        padding: const EdgeInsets.only(
+          right: 16.0,
+          left: 6.0,
+          bottom: 8.0,
+          top: 10,
+        ),
         child: LineChart(
           LineChartData(
             gridData: FlGridData(
@@ -472,8 +489,12 @@ class _DashboardPageState extends State<DashboardPage> {
             borderData: FlBorderData(show: false),
             titlesData: FlTitlesData(
               show: true,
-              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -481,7 +502,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   getTitlesWidget: (value, meta) {
                     return Text(
                       currencyFormatter.format(value),
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade400,
+                      ),
                     );
                   },
                 ),
@@ -497,8 +521,14 @@ class _DashboardPageState extends State<DashboardPage> {
                       return Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
-                          data[index].label.substring(0, 3), // Shorten Month name
-                          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                          data[index].label.substring(
+                            0,
+                            3,
+                          ), // Shorten Month name
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade600,
+                          ),
                         ),
                       );
                     }
@@ -547,12 +577,23 @@ class _DashboardPageState extends State<DashboardPage> {
       child: BarChart(
         BarChartData(
           borderData: FlBorderData(show: false),
-          gridData: FlGridData(show: true, drawVerticalLine: false, getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade100)),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: Colors.grey.shade100),
+          ),
           titlesData: FlTitlesData(
             show: true,
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)), // Hide Left Titles for cleaner look
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ), // Hide Left Titles for cleaner look
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -563,7 +604,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         data[index].label,
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     );
                   }
@@ -599,7 +643,7 @@ class _DashboardPageState extends State<DashboardPage> {
     }
     // Limit to top 4 for pie chart to avoid clutter
     final displayData = data.length > 4 ? data.sublist(0, 4) : data;
-    
+
     return SizedBox(
       height: 200,
       child: Row(
@@ -618,9 +662,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     const Color(0xFF27AE60),
                     const Color(0xFFF2994A),
                     const Color(0xFF2D9CDB),
-                    Colors.grey
+                    Colors.grey,
                   ][index % 5];
-            
+
                   return PieChartSectionData(
                     value: e.value.value <= 0 ? 0.1 : e.value.value,
                     color: color,
@@ -637,35 +681,49 @@ class _DashboardPageState extends State<DashboardPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: displayData.asMap().entries.map((e) {
-                 final index = e.key;
-                 final color = [
-                    const Color(0xFF0D1F3C),
-                    const Color(0xFF27AE60),
-                    const Color(0xFFF2994A),
-                    const Color(0xFF2D9CDB),
-                    Colors.grey
-                  ][index % 5];
-                  final percent = total > 0 ? (e.value.value / total) * 100 : 0.0;
-                
+                final index = e.key;
+                final color = [
+                  const Color(0xFF0D1F3C),
+                  const Color(0xFF27AE60),
+                  const Color(0xFFF2994A),
+                  const Color(0xFF2D9CDB),
+                  Colors.grey,
+                ][index % 5];
+                final percent = total > 0 ? (e.value.value / total) * 100 : 0.0;
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Row(
                     children: [
                       Container(
-                        width: 12, height: 12,
-                        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(e.value.label, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
+                        child: Text(
+                          e.value.label,
+                          style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      Text("${percent.toStringAsFixed(1)}%", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text(
+                        "${percent.toStringAsFixed(1)}%",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 );
               }).toList(),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -681,9 +739,15 @@ class _DashboardPageState extends State<DashboardPage> {
         BarChartData(
           titlesData: FlTitlesData(
             show: true,
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -694,7 +758,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         data[index].shipMode,
-                        style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     );
                   }
@@ -704,7 +771,12 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
           borderData: FlBorderData(show: false),
-          gridData: FlGridData(show: true, drawVerticalLine: false, getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade100)),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: Colors.grey.shade100),
+          ),
           barGroups: data.asMap().entries.map((e) {
             return BarChartGroupData(
               x: e.key,
@@ -714,8 +786,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   color: const Color(0xFFF2994A), // Orange
                   width: 40,
                   borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8)),
+                    topLeft: Radius.circular(8),
+                    topRight: Radius.circular(8),
+                  ),
                 ),
               ],
             );
@@ -726,11 +799,15 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _listChart(List<ChartItem> data, {bool isCurrency = true}) {
-    if (data.isEmpty) return const Padding(padding: EdgeInsets.all(16), child: Text("Tidak ada data"));
+    if (data.isEmpty)
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text("Tidak ada data"),
+      );
     return Column(
       children: data.asMap().entries.map((e) {
         final index = e.key;
-        
+
         // Tentukan format tampilan angka
         String displayValue;
         if (isCurrency) {
@@ -746,17 +823,39 @@ class _DashboardPageState extends State<DashboardPage> {
               dense: true,
               leading: CircleAvatar(
                 backgroundColor: _softGreenBg,
-                child: Text("${index + 1}", style: TextStyle(color: _accentColor, fontWeight: FontWeight.bold)),
                 radius: 16,
+                child: Text(
+                  "${index + 1}",
+                  style: TextStyle(
+                    color: _accentColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-              title: Text(e.value.label, style: TextStyle(fontSize: 14, color: _primaryColor, fontWeight: FontWeight.w600)),
+              title: Text(
+                e.value.label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               trailing: Text(
                 displayValue,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _accentColor),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: _accentColor,
+                ),
               ),
             ),
             if (index != data.length - 1)
-              Divider(height: 1, color: Colors.grey.shade100, indent: 16, endIndent: 16),
+              Divider(
+                height: 1,
+                color: Colors.grey.shade100,
+                indent: 16,
+                endIndent: 16,
+              ),
           ],
         );
       }).toList(),

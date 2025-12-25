@@ -5,7 +5,6 @@ import '../models/list_productadm_model.dart';
 import '../services/listproduct_adm.dart';
 import '../pages/detailproduk_adm.dart';
 
-
 class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
 
@@ -18,7 +17,7 @@ class _ProductListPageState extends State<ProductListPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
-  List<Product> _products = [];
+  final List<Product> _products = [];
   int _currentPage = 1;
   bool _isLoading = false;
   bool _hasMore = true; // Penanda apakah masih ada data di halaman berikutnya

@@ -149,7 +149,7 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
-      symbol: 'Rp ',
+      symbol: '\$',
       decimalDigits: 0,
     );
 
