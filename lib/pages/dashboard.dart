@@ -33,11 +33,12 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
 
   Future<void> _refreshData() async {
     _loadData();
-    await _dashboardFuture;
+    await _dashboardFuture; // Tunggu selesai
   }
 
   @override
   Widget build(BuildContext context) {
+    // Formatter Rupiah
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -161,10 +162,12 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            currencyFormatter.format(data.totalRevenue),
+                            currencyFormatter.format(
+                              data.totalRevenue,
+                            ), // Pakai formatter
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 28,
+                              fontSize: 28, // Sedikit disesuaikan agar muat
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -233,7 +236,11 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                       icon: Icons.add_box_rounded,
                       color: _accentColor,
                       onTap: () async {
-                        Navigator.pushNamed(context, '/tambah_produk');
+                        // Import halaman tambah produk di header jika ingin dipakai: import 'tambah_produk.dart';
+                        Navigator.pushNamed(
+                          context,
+                          '/tambah_produk',
+                        ); // Atau gunakan MaterialPageRoute
                       },
                     ),
                   ],
