@@ -83,16 +83,24 @@ class ApiService {
     }
   }
 
-  // Endpoint: /search (ambil semua produk untuk list)
+  // Endpoint: /products (ambil semua produk untuk list)
   Future<List<dynamic>> getProducts() async {
-    final url = Uri.parse(
-      '$baseUrl/search',
-    ); // Default search tanpa query = all products limit 10
+    // URL mengarah ke /products
+    final url = Uri.parse('$baseUrl/products');
+
+    // PENTING: Ambil token agar tidak kena Error 401
+    final headers = await _getHeaders();
+
     try {
-      final response = await http.get(url);
+      // Gunakan http.get
+      final response = await http.get(url, headers: headers);
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         return json['data'] ?? [];
+      } else if (response.statusCode == 401) {
+        print("Akses Ditolak: Token Expired atau Tidak Valid");
+        return [];
       }
       return [];
     } catch (e) {
@@ -103,14 +111,22 @@ class ApiService {
 
   // Endpoint: /product/:id
   Future<Map<String, dynamic>?> getProductDetail(String id) async {
-    final url = Uri.parse('$baseUrl/product/$id');
+    // PERBAIKAN: Gunakan '/products/' (jamak) sesuai route backend Anda
+    final url = Uri.parse('$baseUrl/products/$id');
+
+    // Ambil Token
+    final headers = await _getHeaders();
+
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: headers);
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         return json['data'];
+      } else {
+        print("Gagal ambil detail (Status: ${response.statusCode})");
+        return null;
       }
-      return null;
     } catch (e) {
       print("Error fetching detail: $e");
       return null;
@@ -119,18 +135,24 @@ class ApiService {
 
   // Endpoint (Admin): /product (Add Product)
   Future<bool> addProduct(String name, int subCategoryId, double price) async {
-    final url = Uri.parse('$baseUrl/product');
+    // URL SAMA (/products), TAPI NANTI KITA PAKAI POST
+    final url = Uri.parse('$baseUrl/products');
+
     final headers = await _getHeaders();
+
     try {
+      // Gunakan http.post
       final response = await http.post(
         url,
         headers: headers,
+        // Body JSON harus sesuai dengan Joi validation di route.js backend
         body: jsonEncode({
-          'product_name': name,
-          'subkategori_id': subCategoryId,
-          'price': price,
+          'product_name': name, // Sesuai Joi.string()
+          'price': price, // Sesuai Joi.number()
+          'subkategori_id': subCategoryId, // Sesuai Joi.number()
         }),
       );
+
       return response.statusCode == 200;
     } catch (e) {
       print("Error add product: $e");
@@ -141,8 +163,8 @@ class ApiService {
   // --- CART & ORDER ---
 
   // Endpoint: /cart/:id (Add to Cart)
-  Future<bool> addToCart(String productId, int quantity) async {
-    final url = Uri.parse('$baseUrl/cart/$productId');
+  Future<bool> addToCart(String id, int quantity) async {
+    final url = Uri.parse('$baseUrl/products/$id/cart');
     final headers = await _getHeaders();
     try {
       final response = await http.post(

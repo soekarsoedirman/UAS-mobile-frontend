@@ -54,7 +54,7 @@ class _ProductListPageState extends State<ProductListPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: "Search product...",
+                hintText: "Cari Produk...",
                 hintStyle: TextStyle(color: Colors.grey.shade500),
                 prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
                 filled: true,
