@@ -64,7 +64,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context); // Opsional: Kembali ke list setelah add
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

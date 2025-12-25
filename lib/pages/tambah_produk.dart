@@ -43,10 +43,7 @@ class _AddProductPageState extends State<AddProductPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Produk Berhasil Disimpan")));
-      Navigator.pop(
-        context,
-        true,
-      ); // Return true agar halaman sebelumnya bisa refresh
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

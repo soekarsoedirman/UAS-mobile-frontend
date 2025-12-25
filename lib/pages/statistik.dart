@@ -176,7 +176,7 @@ class _DashboardPageState extends State<DashboardPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: _primaryColor, // Dark Blue Background for emphasis
+              color: _primaryColor,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(

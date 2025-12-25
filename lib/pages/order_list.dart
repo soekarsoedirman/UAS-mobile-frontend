@@ -66,8 +66,6 @@ class _SellerOrderListPageState extends State<SellerOrderListPage> {
             itemBuilder: (context, index) {
               final order = orders[index];
 
-              // Mapping data dari backend (handler_customer.js -> orderlst)
-              // Columns: order_date, product_name, quantity, sales, status, shipmode
               final productName = order["product_name"] ?? "Unknown";
               final status = order["status"] ?? "-";
               final sales = double.tryParse(order["sales"].toString()) ?? 0;
@@ -77,7 +75,6 @@ class _SellerOrderListPageState extends State<SellerOrderListPage> {
               // Format tanggal
               String dateStr = order["order_date"] ?? "-";
               try {
-                // Asumsi date format ISO, ubah agar rapi
                 DateTime dt = DateTime.parse(dateStr);
                 dateStr = DateFormat('dd-MM-yyyy').format(dt);
               } catch (e) {}

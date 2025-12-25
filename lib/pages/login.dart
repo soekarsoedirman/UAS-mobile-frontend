@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(response['message'] ?? "Login Gagal"),
-          backgroundColor: Colors.red,
+          backgroundColor: const Color.fromARGB(255, 79, 230, 59),
         ),
       );
     }

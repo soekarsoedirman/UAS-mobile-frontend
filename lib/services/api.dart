@@ -60,14 +60,21 @@ class ApiService {
 
   // --- PRODUCT & CATEGORY (HOME) ---
 
-  // Endpoint: / (Home handler)
+  // Endpoint: /home (Home handler)
   Future<List<dynamic>> getCategories() async {
-    final url = Uri.parse('$baseUrl/');
+    final url = Uri.parse('$baseUrl/home');
+
+    final headers = await _getHeaders();
+
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: headers);
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         return json['data'] ?? [];
+      } else if (response.statusCode == 401) {
+        print("Token Expired atau Tidak Valid");
+        return [];
       }
       return [];
     } catch (e) {
@@ -210,14 +217,21 @@ class ApiService {
   }
 
   // Endpoint: /order (Get Order List)
+
+  // Endpoint: /order/list (Customer Order History)
   Future<List<dynamic>> getOrderHistory() async {
-    final url = Uri.parse('$baseUrl/order'); // GET method
+    final url = Uri.parse('$baseUrl/order/list');
+
     final headers = await _getHeaders();
     try {
       final response = await http.get(url, headers: headers);
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         return json['data'] ?? [];
+      } else if (response.statusCode == 403) {
+        print("Akses ditolak: Pastikan login sebagai Customer");
+        return [];
       }
       return [];
     } catch (e) {
