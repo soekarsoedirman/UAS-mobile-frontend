@@ -6,7 +6,8 @@ import '../services/api.dart'; // Import API Service untuk Logout
 import '../pages/statistik.dart';
 import '../pages/tambah_produk.dart';
 import '../pages/listproductadmin.dart';
-import '../pages/login.dart'; // Import Halaman Login
+import '../pages/login.dart';
+import '../pages/orderlist_adm.dart';
 
 class SellerDashboardPage extends StatefulWidget {
   const SellerDashboardPage({super.key});
@@ -281,6 +282,20 @@ class _SellerDashboardPageState extends State<SellerDashboardPage> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const ProductListPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    _dashboardButton(
+                      text: "Order List",
+                      icon: Icons.list_alt_rounded,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SellerOrderListPage(),
                           ),
                         );
                       },

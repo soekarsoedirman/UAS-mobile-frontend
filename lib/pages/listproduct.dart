@@ -2,17 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/api.dart';
 import 'detailproduk.dart';
+import 'dart:async'; // Tambahan untuk Debouncer (opsional, biar tidak spam API)
 
 class ProductListPage extends StatefulWidget {
-  const ProductListPage({super.key});
+  final String? initialCategoryId;
+  final String? initialSubCategoryId;
+
+  const ProductListPage({
+    super.key,
+    this.initialCategoryId,
+    this.initialSubCategoryId,
+  });
 
   @override
   State<ProductListPage> createState() => _ProductListPageState();
 }
 
 class _ProductListPageState extends State<ProductListPage> {
+  // Gunakan ApiService (sesuaikan nama class service Anda)
+  final ApiService _apiService = ApiService(); 
+  
   late Future<List<dynamic>> _productsFuture;
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce; // Timer untuk jeda pencarian
 
   // Warna Hijau sesuai screenshot
   final Color _greenColor = const Color(0xFF4CAF50);
@@ -20,15 +32,42 @@ class _ProductListPageState extends State<ProductListPage> {
   @override
   void initState() {
     super.initState();
-    // Memanggil endpoint search tanpa parameter = get all
-    _productsFuture = ApiService().getProducts();
+    // Load awal: Gunakan kategori/sub yang dikirim dari Home (jika ada)
+    _fetchProducts();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  // Fungsi helper untuk memanggil API
+  void _fetchProducts({String query = ''}) {
+    setState(() {
+      _productsFuture = _apiService.getProducts(
+        categoryId: widget.initialCategoryId,       // Filter Kategori (tetap aktif meski mencari nama)
+        subCategoryId: widget.initialSubCategoryId, // Filter Sub Kategori
+        queryName: query,                           // Filter Nama (Search)
+      );
+    });
+  }
+
+  // Fungsi saat user mengetik di search bar
+  void _onSearchChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    // Tunggu 500ms setelah user berhenti mengetik baru panggil API
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _fetchProducts(query: value);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
-      symbol: '\$',
+      symbol: 'Rp ',
       decimalDigits: 0,
     );
 
@@ -53,12 +92,13 @@ class _ProductListPageState extends State<ProductListPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
               controller: _searchController,
+              onChanged: _onSearchChanged, // Panggil fungsi saat mengetik
               decoration: InputDecoration(
                 hintText: "Cari Produk...",
                 hintStyle: TextStyle(color: Colors.grey.shade500),
                 prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
                 filled: true,
-                fillColor: const Color(0xFFF5F6F8), // Abu-abu sangat muda
+                fillColor: const Color(0xFFF5F6F8),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -82,7 +122,7 @@ class _ProductListPageState extends State<ProductListPage> {
                   return Center(child: Text("Error: ${snapshot.error}"));
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("Belum ada produk"));
+                  return const Center(child: Text("Produk tidak ditemukan"));
                 }
 
                 final products = snapshot.data!;
@@ -93,15 +133,13 @@ class _ProductListPageState extends State<ProductListPage> {
                   itemBuilder: (context, index) {
                     final product = products[index];
 
-                    // Data Mapping
-                    final id = product['product_id'] ?? '';
-                    final name = product['product_name'] ?? 'No Name';
-                    final price =
-                        double.tryParse(product['price'].toString()) ?? 0;
-
-                    // Catatan: Backend search endpoint saat ini belum return 'kategori_name'
-                    // Jadi kita pakai placeholder agar UI mirip screenshot
-                    final categoryPlaceholder = "General Item";
+                    // Data Mapping (Pastikan key JSON sesuai backend)
+                    final id = product['product_id']?.toString() ?? '';
+                    final name = product['product_name']?.toString() ?? 'No Name';
+                    final price = double.tryParse(product['price'].toString()) ?? 0;
+                    
+                    // Ambil kategori name jika backend sudah mengirimnya
+                    final categoryName = product['kategori_name']?.toString() ?? "General";
 
                     return GestureDetector(
                       onTap: () {
@@ -125,7 +163,6 @@ class _ProductListPageState extends State<ProductListPage> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          // Efek bayangan halus (Shadow)
                           boxShadow: [
                             BoxShadow(
                               color: Colors.grey.withOpacity(0.08),
@@ -138,13 +175,11 @@ class _ProductListPageState extends State<ProductListPage> {
                         ),
                         child: Row(
                           children: [
-                            // ICON (Kiri)
+                            // ICON
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: _greenColor.withOpacity(
-                                  0.1,
-                                ), // Hijau muda transparan
+                                color: _greenColor.withOpacity(0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -152,16 +187,17 @@ class _ProductListPageState extends State<ProductListPage> {
                                 color: _greenColor,
                               ),
                             ),
-
                             const SizedBox(width: 16),
 
-                            // TEXT (Tengah)
+                            // TEXT (Nama & Kategori)
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     name,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
@@ -170,7 +206,7 @@ class _ProductListPageState extends State<ProductListPage> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    categoryPlaceholder,
+                                    categoryName,
                                     style: TextStyle(
                                       color: Colors.grey.shade500,
                                       fontSize: 12,
@@ -180,7 +216,7 @@ class _ProductListPageState extends State<ProductListPage> {
                               ),
                             ),
 
-                            // PRICE (Kanan)
+                            // PRICE
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -194,7 +230,7 @@ class _ProductListPageState extends State<ProductListPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  "Shopping", // Label statis sesuai screenshot
+                                  "Stock Ready",
                                   style: TextStyle(
                                     color: Colors.grey.shade400,
                                     fontSize: 10,

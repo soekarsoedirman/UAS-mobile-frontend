@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'http://10.0.2.2:3000';
 
   // --- HELPER: GET HEADERS (WITH TOKEN) ---
   Future<Map<String, String>> _getHeaders() async {
@@ -99,16 +99,35 @@ class ApiService {
     }
   }
 
-  // Endpoint: /products (ambil semua produk untuk list)
-  Future<List<dynamic>> getProducts() async {
-    // URL mengarah ke /products
-    final url = Uri.parse('$baseUrl/products');
+  // Endpoint: /products (Get All, Filter by Category, or Search)
+  Future<List<dynamic>> getProducts({
+    String? categoryId,
+    String? subCategoryId,
+    String? queryName,
+  }) async {
+    // Siapkan parameter query
+    final Map<String, String> queryParams = {};
+    
+    // Sesuaikan key string ('kategori', 'sub_kategori') dengan yang diminta Backend Handler
+    if (categoryId != null && categoryId.isNotEmpty) {
+      queryParams['kategori'] = categoryId;
+    }
+    if (subCategoryId != null && subCategoryId.isNotEmpty) {
+      queryParams['sub_kategori'] = subCategoryId;
+    }
+    if (queryName != null && queryName.isNotEmpty) {
+      queryParams['name'] = queryName;
+    }
 
-    // PENTING: Ambil token agar tidak kena Error 401
+    // Gabungkan Base URL dengan Query Params
+    // Hasilnya akan seperti: http://localhost:3000/products?kategori=1&name=hp
+    final url = Uri.parse('$baseUrl/products').replace(queryParameters: queryParams);
+
+    // Ambil token
     final headers = await _getHeaders();
 
     try {
-      // Gunakan http.get
+      print("Requesting: $url"); // Debugging URL
       final response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
