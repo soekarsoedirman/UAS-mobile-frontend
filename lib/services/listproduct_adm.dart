@@ -5,29 +5,25 @@ import '../models/list_productadm_model.dart';
 import 'api.dart';
 
 class ProductService {
-  final String baseUrl = "${ApiService.baseUrl}/products"; 
+  final String baseUrl = "${ApiService.baseUrl}/products";
 
   Future<List<Product>> getProducts({
-    int page = 1, 
+    int page = 1,
     String queryName = '',
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
     // Menyusun Query Parameters
-    final Map<String, String> queryParams = {
-      'page': page.toString(),
-    };
+    final Map<String, String> queryParams = {'page': page.toString()};
 
-    // Jika ada pencarian, tambahkan parameter 'name'
     if (queryName.isNotEmpty) {
       queryParams['name'] = queryName;
     }
 
-    // Hasil URI: http://localhost:3000/products?page=1&name=baju
     final uri = Uri.parse(baseUrl).replace(queryParameters: queryParams);
 
-    print("Requesting: $uri"); 
+    print("Requesting: $uri");
 
     try {
       final response = await http.get(
@@ -40,7 +36,7 @@ class ProductService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
-        
+
         final List<dynamic> data = jsonResponse['data'];
 
         return data.map((json) => Product.fromJson(json)).toList();
