@@ -27,10 +27,6 @@ class _HomePageState extends State<HomePage> {
   void fetchHomeData() async {
     final data = await _apiService.getCategories();
 
-    // Data backend flat (join table), kita perlu olah sedikit agar UI rapi
-    // Data: [{kategori_id, kategori_name, subkategori_id, subkategori_name}, ...]
-
-    // Ambil Unique Categories
     final uniqueCats = <String, dynamic>{};
     for (var item in data) {
       if (item['kategori_id'] != null) {
@@ -43,7 +39,7 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       categories = uniqueCats.values.toList();
-      subCategories = data; // Tampilkan semua sub kategori (atau filter nanti)
+      subCategories = data;
       isLoading = false;
     });
   }
@@ -79,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
-                    height: 50, // Sesuaikan tinggi agar muat text
+                    height: 50,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: categories.length,

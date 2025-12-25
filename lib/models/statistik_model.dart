@@ -2,15 +2,9 @@ class DashboardData {
   final Summary summary;
   final Charts charts;
 
-  DashboardData({
-    required this.summary,
-    required this.charts,
-  });
+  DashboardData({required this.summary, required this.charts});
 
   factory DashboardData.fromJson(Map<String, dynamic> json) {
-    // PERBAIKAN:
-    // json di sini sudah berisi {summary: ..., charts: ...}
-    // Jadi langsung panggil key-nya, TIDAK PERLU json['data'] lagi.
     return DashboardData(
       summary: Summary.fromJson(json['summary'] ?? {}),
       charts: Charts.fromJson(json['charts'] ?? {}),
@@ -41,7 +35,8 @@ class Summary {
     // PERBAIKAN: Gunakan tryParse agar aman dari null/string
     return Summary(
       totalSales: double.tryParse(json['total_sales'].toString()) ?? 0.0,
-      totalTransactions: int.tryParse(json['total_transactions'].toString()) ?? 0,
+      totalTransactions:
+          int.tryParse(json['total_transactions'].toString()) ?? 0,
       avgOrderValue: double.tryParse(json['avg_order_value'].toString()) ?? 0.0,
       totalQuantity: int.tryParse(json['total_quantity'].toString()) ?? 0,
       totalCustomers: int.tryParse(json['total_customers'].toString()) ?? 0,
@@ -100,37 +95,45 @@ class ChartItem {
 
 List<ChartItem> _parseList(List? list, String labelKey) {
   return (list ?? [])
-      .map((e) => ChartItem(
-            label: e[labelKey]?.toString() ?? "Unknown",
-            value: double.tryParse(e['total'].toString()) ?? 0.0,
-          ))
+      .map(
+        (e) => ChartItem(
+          label: e[labelKey]?.toString() ?? "Unknown",
+          value: double.tryParse(e['total'].toString()) ?? 0.0,
+        ),
+      )
       .toList();
 }
 
 List<ChartItem> _parseMonth(List? list) {
   return (list ?? [])
-      .map((e) => ChartItem(
-            label: "${e['month_name']} ${e['year']}",
-            value: double.tryParse(e['total'].toString()) ?? 0.0,
-          ))
+      .map(
+        (e) => ChartItem(
+          label: "${e['month_name']} ${e['year']}",
+          value: double.tryParse(e['total'].toString()) ?? 0.0,
+        ),
+      )
       .toList();
 }
 
 List<ChartItem> _parseQuarter(List? list) {
   return (list ?? [])
-      .map((e) => ChartItem(
-            label: "Q${e['quarter']} ${e['year']}",
-            value: double.tryParse(e['total'].toString()) ?? 0.0,
-          ))
+      .map(
+        (e) => ChartItem(
+          label: "Q${e['quarter']} ${e['year']}",
+          value: double.tryParse(e['total'].toString()) ?? 0.0,
+        ),
+      )
       .toList();
 }
 
 List<ChartItem> _parseYear(List? list) {
   return (list ?? [])
-      .map((e) => ChartItem(
-            label: e['year'].toString(),
-            value: double.tryParse(e['total'].toString()) ?? 0.0,
-          ))
+      .map(
+        (e) => ChartItem(
+          label: e['year'].toString(),
+          value: double.tryParse(e['total'].toString()) ?? 0.0,
+        ),
+      )
       .toList();
 }
 

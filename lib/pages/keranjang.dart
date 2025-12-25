@@ -41,7 +41,7 @@ class _CartPageState extends State<CartPage> {
   void deleteItem(String cartId) async {
     bool success = await _apiService.deleteCartItem(cartId);
     if (success) {
-      fetchCart(); // Refresh list setelah hapus
+      fetchCart();
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -51,10 +51,9 @@ class _CartPageState extends State<CartPage> {
   }
 
   void processCheckout() async {
-    Navigator.pop(context); // Tutup dialog
+    Navigator.pop(context);
     setState(() => isLoading = true);
 
-    // Ambil input atau gunakan default dummy jika kosong agar tidak error di backend
     bool success = await _apiService.checkout(
       postalCode: postalCtrl.text.isNotEmpty ? postalCtrl.text : "12345",
       state: stateCtrl.text.isNotEmpty ? stateCtrl.text : "Banten",
@@ -73,7 +72,7 @@ class _CartPageState extends State<CartPage> {
           backgroundColor: primaryGreen,
         ),
       );
-      fetchCart(); // Keranjang akan kosong setelah checkout
+      fetchCart();
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

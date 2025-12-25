@@ -29,12 +29,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => isLoading = true);
 
-    // Mapping Role ID: 1 = Admin, 2 = Customer
-    // Di backend, authregister butuh: username, roleID, email, password, segmen
-    // Disini kita asumsi 'Customer' -> roleID 2, yang lain bisa jadi roleID 2 juga tapi beda segmen
-    // ATAU Anda bisa set aturan: Jika segment Corporate/Home Office -> Role 1 (Seller/Admin)?
-    // Mari asumsi semua register di sini adalah Customer (Role 2) kecuali kita punya opsi khusus.
-    // Tapi di UI ada opsi "Corporate". Kita set Role 2 (Customer) untuk semua, karena Admin biasanya dibuat manual di DB.
     int roleId = 2;
 
     final response = await ApiService().register(

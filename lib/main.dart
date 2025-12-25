@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pages/login.dart';
-import 'pages/tambah_produk.dart'; // Import halaman
+import 'pages/tambah_produk.dart';
 
 void main() {
   runApp(const MyApp());

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/statistik_model.dart';
-import 'api.dart'; // Import untuk akses BaseURL jika ingin konsisten
+import 'api.dart';
 
 class DashboardService {
   // Gunakan 10.0.2.2 untuk Emulator Android
@@ -13,7 +13,6 @@ class DashboardService {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    // 1. Ambil Token dari Shared Preferences
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
@@ -41,7 +40,7 @@ class DashboardService {
         uri,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // Gunakan token dinamis
+          'Authorization': 'Bearer $token',
         },
       );
 
