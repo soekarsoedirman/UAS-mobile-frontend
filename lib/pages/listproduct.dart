@@ -66,9 +66,9 @@ class _ProductListPageState extends State<ProductListPage> {
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
+      locale: 'en_US',
+      symbol: '\$',
+      decimalDigits: 1,
     );
 
     return Scaffold(
