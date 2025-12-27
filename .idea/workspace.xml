@@ -10,10 +10,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="630b0a07-cd44-4255-94e4-50a67732c6b1" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/pages/detailproduk.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/pages/detailproduk.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/pages/listproduct.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/pages/listproduct.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/pages/detailproduk_adm.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/pages/detailproduk_adm.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/pages/tambah_produk.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/pages/tambah_produk.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/services/api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/api.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

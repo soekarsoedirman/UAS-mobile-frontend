@@ -12,27 +12,48 @@ class AddProductPage extends StatefulWidget {
 class _AddProductPageState extends State<AddProductPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers untuk mengambil input
+  // Controllers untuk text input
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _subCatController = TextEditingController();
+
+  // Variabel State untuk menyimpan nilai ID Sub Kategori yang dipilih dari Dropdown
+  int? _selectedSubCategoryId;
 
   final ProductService _service = ProductService();
   bool _isLoading = false;
 
-  // Warna tema (Konsisten dengan halaman lain)
-  final Color _primaryColor = const Color(0xFF0D1F3C); // Dark Blue
-  final Color _accentColor = const Color(0xFF27AE60);  // Green
+  // Warna tema
+  final Color _primaryColor = const Color(0xFF0D1F3C);
+  final Color _accentColor = const Color(0xFF27AE60);
+
+  // Data Sub Kategori (ID & Nama)
+  final List<Map<String, dynamic>> _subCategories = [
+    {'id': 1, 'name': 'Bookcases'},
+    {'id': 2, 'name': 'Chairs'},
+    {'id': 3, 'name': 'Furnishings'},
+    {'id': 4, 'name': 'Tables'},
+    {'id': 5, 'name': 'Appliances'},
+    {'id': 6, 'name': 'Art'},
+    {'id': 7, 'name': 'Binders'},
+    {'id': 8, 'name': 'Envelopes'},
+    {'id': 9, 'name': 'Fasteners'},
+    {'id': 10, 'name': 'Labels'},
+    {'id': 11, 'name': 'Paper'},
+    {'id': 12, 'name': 'Storage'},
+    {'id': 13, 'name': 'Supplies'},
+    {'id': 14, 'name': 'Accessories'},
+    {'id': 15, 'name': 'Copiers'},
+    {'id': 16, 'name': 'Machines'},
+    {'id': 17, 'name': 'Phones'},
+  ];
 
   @override
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
-    _subCatController.dispose();
     super.dispose();
   }
 
-  // Fungsi Submit
   Future<void> _submitData() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -41,7 +62,10 @@ class _AddProductPageState extends State<AddProductPage> {
     try {
       final name = _nameController.text;
       final price = int.parse(_priceController.text);
-      final subCatId = int.parse(_subCatController.text);
+
+      // Ambil ID dari variabel state dropdown
+      // Kita gunakan tanda seru (!) karena validator sudah menjamin nilainya tidak null
+      final subCatId = _selectedSubCategoryId!;
 
       await _service.addProduct(name, price, subCatId);
 
@@ -52,7 +76,7 @@ class _AddProductPageState extends State<AddProductPage> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context, true); // Kembali dengan nilai true
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
@@ -68,13 +92,12 @@ class _AddProductPageState extends State<AddProductPage> {
     }
   }
 
-  // Helper untuk styling input agar rapi & konsisten
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: Colors.grey.shade600),
       filled: true,
-      fillColor: Colors.grey.shade50, // Background input abu-abu muda
+      fillColor: Colors.grey.shade50,
       prefixIcon: Icon(icon, color: Colors.grey.shade400),
       contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       border: OutlineInputBorder(
@@ -116,12 +139,12 @@ class _AddProductPageState extends State<AddProductPage> {
             constraints: const BoxConstraints(maxWidth: 500),
             child: Column(
               children: [
-                // Header Icon (Add Cart)
+                // Header Icon
                 Container(
                   width: 80,
                   height: 80,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFEAF9F2), // Light Green Background
+                    color: Color(0xFFEAF9F2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -186,7 +209,7 @@ class _AddProductPageState extends State<AddProductPage> {
                             FilteringTextInputFormatter.digitsOnly
                           ],
                           decoration:
-                              _inputDecoration("Harga (\$)", Icons.attach_money),
+                          _inputDecoration("Harga (\$)", Icons.attach_money),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return "Harga wajib diisi";
@@ -199,21 +222,30 @@ class _AddProductPageState extends State<AddProductPage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // ================= SUB KATEGORI ID =================
-                        TextFormField(
-                          controller: _subCatController,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
+                        // ================= DROPDOWN SUB KATEGORI =================
+                        DropdownButtonFormField<int>(
+                          value: _selectedSubCategoryId,
                           decoration: _inputDecoration(
-                              "Sub Kategori ID", Icons.category_outlined),
+                              "Sub Kategori", Icons.category_outlined),
+                          menuMaxHeight: 300, // Batasi tinggi menu agar bisa discroll
+                          items: _subCategories.map((category) {
+                            return DropdownMenuItem<int>(
+                              value: category['id'], // Nilai yang disimpan (ID)
+                              child: Text(category['name']), // Teks yang tampil (Nama)
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedSubCategoryId = value;
+                            });
+                          },
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "ID Sub Kategori wajib diisi";
+                            if (value == null) {
+                              return "Pilih Sub Kategori";
                             }
                             return null;
                           },
+                          isExpanded: true,
                         ),
 
                         const SizedBox(height: 32),
@@ -232,7 +264,7 @@ class _AddProductPageState extends State<AddProductPage> {
                             const SizedBox(width: 16),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _primaryColor, // Dark Blue
+                                backgroundColor: _primaryColor,
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                                 padding: const EdgeInsets.symmetric(
@@ -244,16 +276,16 @@ class _AddProductPageState extends State<AddProductPage> {
                               onPressed: _isLoading ? null : _submitData,
                               child: _isLoading
                                   ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                          color: Colors.white, strokeWidth: 2),
-                                    )
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2),
+                              )
                                   : const Text(
-                                      "Simpan Produk",
-                                      style:
-                                          TextStyle(fontWeight: FontWeight.bold),
-                                    ),
+                                "Simpan Produk",
+                                style:
+                                TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ],
                         ),

@@ -27,11 +27,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool isDeleting = false;
   ProductDetail? _detail;
 
-  // Warna tema (Konsisten dengan halaman lain)
-  final Color _primaryColor = const Color(0xFF0D1F3C); // Dark Blue
-  final Color _accentColor = const Color(0xFF27AE60); // Green
-  final Color _softGreenBg = const Color(0xFFEAF9F2); // Light Green Background
-  final Color _softRedBg = const Color(0xFFFFEBEE); // Light Red Background
+  // Warna tema
+  final Color _primaryColor = const Color(0xFF0D1F3C);
+  final Color _accentColor = const Color(0xFF27AE60);
+  final Color _softGreenBg = const Color(0xFFEAF9F2);
+  final Color _softRedBg = const Color(0xFFFFEBEE);
 
   @override
   void initState() {
@@ -51,14 +51,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Gagal: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal: $e")));
       }
     }
   }
 
-  // Fungsi Hapus Produk
   void _deleteProduct() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -91,7 +88,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context, true); // Kembali ke list & refresh
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
@@ -109,8 +106,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Formatter Dolar ($) sesuai request sebelumnya, atau gunakan Rp jika diinginkan
-    // Di sini saya gunakan $ sesuai konsistensi terakhir, tapi bisa diubah formatnya.
     final currencyFormatter = NumberFormat.currency(
       locale: 'en_US',
       symbol: '\$',
@@ -131,189 +126,156 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       body: isDeleting
           ? Center(child: CircularProgressIndicator(color: _accentColor))
           : SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Container(
               padding: const EdgeInsets.all(24),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 500),
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade100),
-                      // Shadow halus
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // ICON IMAGE
-                        Center(
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: _softGreenBg,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.shopping_bag_outlined,
-                              size: 48,
-                              color: _accentColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // NAMA PRODUK
-                        Center(
-                          child: Text(
-                            _detail?.productName ?? widget.productName,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: _primaryColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-
-                        // SUB KATEGORI (Subtitle)
-                        Center(
-                          child: isLoading
-                              ? const SizedBox(
-                                  height: 15,
-                                  width: 15,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  _detail?.subCategoryName ?? "Sub-Kategori",
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // TOMBOL EDIT & HAPUS
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Tombol Edit
-                            InkWell(
-                              onTap: () async {
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => EditProductPage(
-                                      productId: widget.productId,
-                                      currentName:
-                                          _detail?.productName ??
-                                          widget.productName,
-                                      currentPrice:
-                                          _detail?.price ?? widget.productPrice,
-                                    ),
-                                  ),
-                                );
-
-                                if (result == true) {
-                                  _fetchDetail();
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: _softGreenBg,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  Icons.edit_outlined,
-                                  color: _accentColor,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-
-                            // Tombol Hapus
-                            InkWell(
-                              onTap: _deleteProduct,
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: _softRedBg,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 32),
-                        const Divider(height: 1),
-                        const SizedBox(height: 24),
-
-                        // INFO DETAIL LIST
-                        Text(
-                          "Informasi Detail",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _primaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        _infoRow(
-                          "Harga Satuan",
-                          currencyFormatter.format(
-                            _detail?.price ?? widget.productPrice,
-                          ),
-                          _accentColor,
-                        ),
-                        const SizedBox(height: 12),
-                        _infoRow(
-                          "Kategori",
-                          isLoading
-                              ? "Loading..."
-                              : (_detail?.categoryName ?? "-"),
-                        ),
-                        const SizedBox(height: 12),
-                        _infoRow(
-                          "Sub Kategori",
-                          isLoading
-                              ? "Loading..."
-                              : (_detail?.subCategoryName ?? "-"),
-                        ),
-
-                        const SizedBox(height: 12),
-                        _infoRow("ID Produk", widget.productId),
-                      ],
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade100),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ICON IMAGE
+                  Center(
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: _softGreenBg,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.shopping_bag_outlined,
+                        size: 48,
+                        color: _accentColor,
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+
+                  // NAMA PRODUK
+                  Center(
+                    child: Text(
+                      _detail?.productName ?? widget.productName,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: _primaryColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+
+                  // SUB KATEGORI
+                  Center(
+                    child: isLoading
+                        ? const SizedBox(
+                      height: 15,
+                      width: 15,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                        : Text(
+                      _detail?.subCategoryName ?? "Sub-Kategori",
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // TOMBOL EDIT & HAPUS
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditProductPage(
+                                productId: widget.productId,
+                                currentName: _detail?.productName ?? widget.productName,
+                                currentPrice: _detail?.price ?? widget.productPrice,
+                              ),
+                            ),
+                          );
+                          if (result == true) {
+                            _fetchDetail();
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _softGreenBg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(Icons.edit_outlined, color: _accentColor),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      InkWell(
+                        onTap: _deleteProduct,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _softRedBg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.delete_outline, color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 32),
+                  const Divider(height: 1),
+                  const SizedBox(height: 24),
+
+                  Text(
+                    "Informasi Detail",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _infoRow("Harga Satuan", currencyFormatter.format(_detail?.price ?? widget.productPrice), _accentColor),
+                  const SizedBox(height: 12),
+                  _infoRow("Kategori", isLoading ? "Loading..." : (_detail?.categoryName ?? "-")),
+                  const SizedBox(height: 12),
+                  _infoRow("Sub Kategori", isLoading ? "Loading..." : (_detail?.subCategoryName ?? "-")),
+
+                  const SizedBox(height: 12),
+                ],
               ),
             ),
+          ),
+        ),
+      ),
     );
   }
 
+  // Helper row biasa untuk data pendek
   Widget _infoRow(String label, String value, [Color? valueColor]) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -322,12 +284,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           label,
           style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: valueColor ?? _primaryColor,
-            fontSize: 15,
+        // Flexible agar teks kanan tidak overflow jika agak panjang (tapi tetap satu baris)
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: valueColor ?? _primaryColor,
+              fontSize: 15,
+            ),
           ),
         ),
       ],
